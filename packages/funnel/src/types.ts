@@ -45,7 +45,8 @@ export interface FunnelPart<D extends FunnelDatum> extends BoxPosition {
     isCurrent: boolean
     points: Position[]
     areaPoints: FunnelAreaPoint[]
-    borderPoints: (Position | null)[]
+    borderPointsLeft: FunnelAreaPoint[]
+    borderPointsRight: FunnelAreaPoint[]
 }
 
 export interface SeparatorProps extends Omit<BoxPosition, 'x' | 'y'> {

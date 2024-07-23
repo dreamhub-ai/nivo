@@ -18,7 +18,7 @@ export const Parts = <D extends FunnelDatum>({
     borderGenerator,
 }: PartsProps<D>) => (
     <>
-        {parts.map(part => (
+        {parts.reverse().map(part => (
             <Part<D>
                 key={part.data.id}
                 part={part}

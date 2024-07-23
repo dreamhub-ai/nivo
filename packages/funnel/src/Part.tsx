@@ -16,15 +16,16 @@ export interface PartProps<D extends FunnelDatum> {
 export const Part = <D extends FunnelDatum>({
     part,
     areaGenerator,
-    borderGenerator,
+    // borderGenerator,
 }: PartProps<D>) => {
     const { animate, config: motionConfig } = useMotionConfig()
 
     const animatedAreaPath = useAnimatedPath(areaGenerator(part.areaPoints) as string)
-    const animatedBorderPath = useAnimatedPath(borderGenerator(part.borderPoints) as string)
+    const animatedBorderPathLeft = useAnimatedPath(areaGenerator(part.borderPointsLeft) as string)
+    const animatedBorderPathRight = useAnimatedPath(areaGenerator(part.borderPointsRight) as string)
     const animatedProps = useSpring({
         areaColor: part.color,
-        borderWidth: part.borderWidth,
+        borderWidth: part.borderWidth / 2,
         borderColor: part.borderColor,
         config: motionConfig,
         immediate: !animate,
@@ -33,13 +34,18 @@ export const Part = <D extends FunnelDatum>({
     return (
         <>
             {part.borderWidth > 0 && (
-                <animated.path
-                    d={animatedBorderPath}
-                    stroke={animatedProps.borderColor}
-                    strokeWidth={animatedProps.borderWidth}
-                    strokeOpacity={part.borderOpacity}
-                    fill="none"
-                />
+                <>
+                    <animated.path
+                        d={animatedBorderPathLeft}
+                        fill={animatedProps.borderColor}
+                        fillOpacity={part.borderOpacity}
+                    />
+                    <animated.path
+                        d={animatedBorderPathRight}
+                        fill={animatedProps.borderColor}
+                        fillOpacity={part.borderOpacity}
+                    />
+                </>
             )}
             <animated.path
                 d={animatedAreaPath}

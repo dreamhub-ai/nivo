@@ -28,6 +28,7 @@ export interface DefaultRawDatum {
     value: number
 }
 
+// @ts-ignore
 export interface MayHaveLabel extends Object {
     label?: string | number
 }

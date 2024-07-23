@@ -329,6 +329,20 @@ export const useFunnel = <D extends FunnelDatum>({
     onClick?: FunnelCommonProps<D>['onClick']
     tooltip?: (props: PartTooltipProps<D>) => JSX.Element
 }) => {
+    function findAngle(y: number, cy: number, ry: number): number {
+        // Ensure y is within the valid range
+        y = Math.max(0, Math.min(y, cy * 2))
+
+        // Calculate the normalized y value
+        const normalizedY = (cy - y) / ry
+
+        // Ensure the normalized value is within [-1, 1]
+        const clampedY = Math.max(-1, Math.min(1, normalizedY))
+
+        // Calculate the angle
+        return -Math.atan2(clampedY, Math.sqrt(1 - clampedY ** 2))
+    }
+
     const theme = useTheme()
     const getColor = useOrdinalColorScale<D>(colors, 'id')
     const getBorderColor = useInheritedColor(borderColor, theme)
@@ -352,6 +366,7 @@ export const useFunnel = <D extends FunnelDatum>({
         innerWidth = width
         innerHeight = height - paddingBefore - paddingAfter
     }
+    console.log(`inners=${innerWidth}x${innerHeight}`)
 
     const [bandScale, linearScale] = useMemo(
         () =>
@@ -415,7 +430,8 @@ export const useFunnel = <D extends FunnelDatum>({
                 labelColor: '',
                 points: [],
                 areaPoints: [],
-                borderPoints: [],
+                borderPointsLeft: [],
+                borderPointsRight: [],
             }
 
             part.borderColor = getBorderColor(part)
@@ -446,47 +462,144 @@ export const useFunnel = <D extends FunnelDatum>({
                     part.points[3].x -= currentPartSizeExtension
                 }
 
-                part.areaPoints = [
-                    {
-                        x: 0,
-                        x0: part.points[0].x,
-                        x1: part.points[1].x,
-                        y: part.y0,
-                        y0: 0,
-                        y1: 0,
-                    },
-                ]
-                part.areaPoints.push({
-                    ...part.areaPoints[0],
-                    y: part.y0 + part.height * shapeBlending,
-                })
-                const lastAreaPoint = {
-                    x: 0,
-                    x0: part.points[3].x,
-                    x1: part.points[2].x,
-                    y: part.y1,
-                    y0: 0,
-                    y1: 0,
+                const generateArcPoints = (
+                    index: number,
+                    y0: number,
+                    y1: number,
+                    cx: number,
+                    cy: number,
+                    rx: number,
+                    ry: number,
+                    numPoints: number,
+                    stretchTopOffset: number,
+                    isRightSide: boolean
+                ): Position[] => {
+                    const points: Position[] = []
+                    rx = isRightSide ? -rx : rx
+
+                    // Find the start and end angles for this band
+                    const startAngle = findAngle(y0, cy, ry + stretchTopOffset)
+                    const endAngle = findAngle(y1, cy, ry)
+
+                    if (!isRightSide) {
+                        console.log(`Band ${index}: y0=${y0} to y1=${y1}`)
+                        console.log(
+                            `Band ${index}: ${(startAngle * 180) / Math.PI}° to ${
+                                (endAngle * 180) / Math.PI
+                            }°`
+                        )
+                    }
+
+                    // Generate points along the arc
+                    for (let i = 0; i < numPoints; i++) {
+                        const t = startAngle + (i / numPoints) * (endAngle - startAngle)
+                        const x = cx + rx * Math.cos(t)
+                        let y = cy + ry * Math.sin(t)
+                        const stretchYFactor = (y1 - y) / (y1 - y0)
+                        y -= stretchTopOffset * stretchYFactor
+                        // const stretchXFactor = x/ rx
+                        // x += stretchTopOffset * stretchXFactor * (isRightSide ? -1 : 1)
+                        points.push({ x, y })
+                    }
+
+                    return points
                 }
+
+                const numPoints = 30
+                const funnelWidth = innerWidth * shapeBlending
+                const rx = innerWidth / 2
+                const ry = innerHeight
+                const cy = ry // Center Y of the ellipse
+                const leftArcPoints = generateArcPoints(
+                    index,
+                    part.y0,
+                    part.y1,
+                    -funnelWidth,
+                    cy,
+                    rx,
+                    ry,
+                    numPoints,
+                    index === 0 ? 5 : 0,
+                    false
+                )
+                const rightArcPoints = generateArcPoints(
+                    index,
+                    part.y0,
+                    part.y1,
+                    innerWidth + funnelWidth,
+                    cy,
+                    rx,
+                    ry,
+                    numPoints,
+                    index === 0 ? 5 : 0,
+                    true
+                )
+
+                part.areaPoints = []
+                const margin = 0 //borderWidth / 4
                 part.areaPoints.push({
-                    ...lastAreaPoint,
-                    y: part.y1 - part.height * shapeBlending,
+                    x: 0,
+                    x0: leftArcPoints[0].x + margin,
+                    x1: rightArcPoints[1].x - margin,
+                    y: leftArcPoints[0].y,
+                    y0: rightArcPoints[0].y,
+                    y1: rightArcPoints[1].y,
                 })
-                part.areaPoints.push(lastAreaPoint)
-                ;[0, 1, 2, 3].map(index => {
-                    part.borderPoints.push({
-                        x: part.areaPoints[index].x0,
-                        y: part.areaPoints[index].y,
+                for (let i = 0; i < numPoints - 1; i++) {
+                    part.areaPoints.push({
+                        x: 0,
+                        x0: leftArcPoints[i].x + margin,
+                        x1: rightArcPoints[i + 1].x - margin,
+                        y: leftArcPoints[i + 1].y,
+                        y0: rightArcPoints[i].y,
+                        y1: rightArcPoints[i + 1].y,
                     })
+                }
+
+                const leftBorderPoints = []
+                leftBorderPoints.push({
+                    x: 0,
+                    x0: leftArcPoints[0].x - borderWidth,
+                    x1: leftArcPoints[0].x,
+                    y: leftArcPoints[0].y,
+                    y0: leftArcPoints[0].y,
+                    y1: leftArcPoints[1].y,
                 })
-                part.borderPoints.push(null)
-                ;[3, 2, 1, 0].map(index => {
-                    part.borderPoints.push({
-                        x: part.areaPoints[index].x1,
-                        y: part.areaPoints[index].y,
+                for (let i = 0; i < numPoints - 1; i++) {
+                    leftBorderPoints.push({
+                        x: 0,
+                        x0: leftArcPoints[i].x - borderWidth,
+                        x1: leftArcPoints[i + 1].x,
+                        y: leftArcPoints[i + 1].y,
+                        y0: leftArcPoints[i].y,
+                        y1: leftArcPoints[i + 1].y,
                     })
+                }
+
+                const rightBorderPoints = []
+                rightBorderPoints.push({
+                    x: 0,
+                    x0: rightArcPoints[0].x + borderWidth,
+                    x1: rightArcPoints[0].x,
+                    y: rightArcPoints[0].y,
+                    y0: rightArcPoints[0].y,
+                    y1: rightArcPoints[1].y,
                 })
+                for (let i = 0; i < numPoints - 1; i++) {
+                    rightBorderPoints.push({
+                        x: 0,
+                        x0: rightArcPoints[i].x + borderWidth,
+                        x1: rightArcPoints[i + 1].x,
+                        y: rightArcPoints[i + 1].y,
+                        y0: rightArcPoints[i].y,
+                        y1: rightArcPoints[i + 1].y,
+                    })
+                }
+
+                part.borderPointsLeft = leftBorderPoints
+                part.borderPointsRight = rightBorderPoints
             } else {
+                // Horizontal direction code remains unchanged
                 part.points.push({ x: part.x0, y: part.y0 })
                 if (nextPart) {
                     part.points.push({ x: part.x1, y: nextPart.y0 })
@@ -530,22 +643,21 @@ export const useFunnel = <D extends FunnelDatum>({
                     x: part.x1 - part.width * shapeBlending,
                 })
                 part.areaPoints.push(lastAreaPoint)
-                ;[0, 1, 2, 3].map(index => {
-                    part.borderPoints.push({
-                        x: part.areaPoints[index].x,
-                        y: part.areaPoints[index].y0,
-                    })
-                })
-                part.borderPoints.push(null)
-                ;[3, 2, 1, 0].map(index => {
-                    part.borderPoints.push({
-                        x: part.areaPoints[index].x,
-                        y: part.areaPoints[index].y1,
-                    })
-                })
+                // ;[0, 1, 2, 3].map(index => {
+                //     part.borderPoints.push({
+                //         x: part.areaPoints[index].x,
+                //         y: part.areaPoints[index].y0,
+                //     })
+                // })
+                // part.borderPoints.push(null)
+                // ;[3, 2, 1, 0].map(index => {
+                //     part.borderPoints.push({
+                //         x: part.areaPoints[index].x,
+                //         y: part.areaPoints[index].y1,
+                //     })
+                // })
             }
         })
-
         return enhancedParts
     }, [
         data,

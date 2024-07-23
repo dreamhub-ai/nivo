@@ -48,9 +48,15 @@ export const CustomTooltip: Story = {
     render: () => (
         <Funnel
             {...commonProps}
-            width={900}
-            height={300}
-            direction={'horizontal'}
+            width={400}
+            height={200}
+            direction={'vertical'}
+            shapeBlending={0.15}
+            spacing={0}
+            borderWidth={25}
+            enableAfterSeparators={false}
+            enableBeforeSeparators={false}
+            margin={{ top: 0, right: 50, bottom: 0, left: 50 }}
             tooltip={({ part }) => (
                 <div
                     style={{
@@ -70,6 +76,6 @@ export const CustomTooltip: Story = {
     ),
 }
 
-export const CombiningWithOtherCharts: Story = {
-    render: () => <FunnelWithClustering />,
-}
+// export const CombiningWithOtherCharts: Story = {
+//     render: () => <FunnelWithClustering />,
+// }
