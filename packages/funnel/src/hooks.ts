@@ -366,7 +366,6 @@ export const useFunnel = <D extends FunnelDatum>({
         innerWidth = width
         innerHeight = height - paddingBefore - paddingAfter
     }
-    console.log(`inners=${innerWidth}x${innerHeight}`)
 
     const [bandScale, linearScale] = useMemo(
         () =>
@@ -481,14 +480,6 @@ export const useFunnel = <D extends FunnelDatum>({
                     const startAngle = findAngle(y0, cy, ry + stretchTopOffset)
                     const endAngle = findAngle(y1, cy, ry)
 
-                    if (!isRightSide) {
-                        console.log(`Band ${index}: y0=${y0} to y1=${y1}`)
-                        console.log(
-                            `Band ${index}: ${(startAngle * 180) / Math.PI}° to ${
-                                (endAngle * 180) / Math.PI
-                            }°`
-                        )
-                    }
 
                     // Generate points along the arc
                     for (let i = 0; i < numPoints; i++) {
@@ -505,7 +496,7 @@ export const useFunnel = <D extends FunnelDatum>({
                     return points
                 }
 
-                const numPoints = 30
+                const numPoints = 12
                 const funnelWidth = innerWidth * shapeBlending
                 const rx = innerWidth / 2
                 const ry = innerHeight
