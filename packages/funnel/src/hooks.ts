@@ -462,7 +462,7 @@ export const useFunnel = <D extends FunnelDatum>({
                 }
 
                 const generateArcPoints = (
-                    index: number,
+                    _index: number,
                     y0: number,
                     y1: number,
                     cx: number,
@@ -531,7 +531,7 @@ export const useFunnel = <D extends FunnelDatum>({
                 part.areaPoints.push({
                     x: 0,
                     x0: leftArcPoints[0].x + margin,
-                    x1: rightArcPoints[1].x - margin,
+                    x1: rightArcPoints[0].x - margin,
                     y: leftArcPoints[0].y,
                     y0: rightArcPoints[0].y,
                     y1: rightArcPoints[1].y,
