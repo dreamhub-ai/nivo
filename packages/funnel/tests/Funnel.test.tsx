@@ -28,10 +28,21 @@ const baseProps = {
     data: sampleData,
 }
 
+// parts are rendered in reverse order (so the first part is drawn on top),
+// expose them in data order for the assertions
+const findParts = (wrapper: ReturnType<typeof mount>) => {
+    const rendered = wrapper.find('Part')
+
+    return {
+        length: rendered.length,
+        at: (index: number) => rendered.at(rendered.length - 1 - index),
+    }
+}
+
 it('basic funnel', () => {
     const wrapper = mount(<Funnel {...baseProps} />)
 
-    const parts = wrapper.find('Part')
+    const parts = findParts(wrapper)
     expect(parts.length).toBe(sampleData.length)
 
     const part0 = parts.at(0)
@@ -69,7 +80,7 @@ describe('layout', () => {
     it('horizontal layout', () => {
         const wrapper = mount(<Funnel {...baseProps} direction="horizontal" />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
 
         const part0 = parts.at(0)
         expect(part0.prop<FunnelPart>('part').x0).toBe(0)
@@ -99,7 +110,7 @@ describe('layout', () => {
     it('spacing out parts', () => {
         const wrapper = mount(<Funnel {...baseProps} spacing={3} />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
 
         const part0 = parts.at(0)
         expect(part0.prop<FunnelPart>('part').y0).toBe(0)
@@ -122,7 +133,7 @@ describe('data', () => {
     it('format value with d3 format', () => {
         const wrapper = mount(<Funnel {...baseProps} valueFormat=">-.2f" />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
         expect(parts.at(0).prop<FunnelPart>('part').formattedValue).toBe('300.00')
         expect(parts.at(1).prop<FunnelPart>('part').formattedValue).toBe('200.00')
         expect(parts.at(2).prop<FunnelPart>('part').formattedValue).toBe('100.00')
@@ -131,7 +142,7 @@ describe('data', () => {
     it('format value with custom function', () => {
         const wrapper = mount(<Funnel {...baseProps} valueFormat={v => `${v}%`} />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
         expect(parts.at(0).prop<FunnelPart>('part').formattedValue).toBe('300%')
         expect(parts.at(1).prop<FunnelPart>('part').formattedValue).toBe('200%')
         expect(parts.at(2).prop<FunnelPart>('part').formattedValue).toBe('100%')
@@ -143,7 +154,7 @@ describe('style', () => {
         const colors = ['#ff0000', '#00ff00', '#0000ff']
         const wrapper = mount(<Funnel {...baseProps} colors={colors} />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
         expect(parts.at(0).prop<FunnelPart>('part').color).toBe(colors[0])
         expect(parts.at(1).prop<FunnelPart>('part').color).toBe(colors[1])
         expect(parts.at(2).prop<FunnelPart>('part').color).toBe(colors[2])
@@ -157,7 +168,7 @@ describe('style', () => {
         }
         const wrapper = mount(<Funnel {...baseProps} colors={d => colorMapping[d.id]} />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
         expect(parts.at(0).prop<FunnelPart>('part').color).toBe(colorMapping[sampleData[0].id])
         expect(parts.at(1).prop<FunnelPart>('part').color).toBe(colorMapping[sampleData[1].id])
         expect(parts.at(2).prop<FunnelPart>('part').color).toBe(colorMapping[sampleData[2].id])
@@ -180,7 +191,7 @@ describe('style', () => {
         ]
         const wrapper = mount(<Funnel {...baseProps} data={data} colors={{ datum: 'color' }} />)
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
         expect(parts.at(0).prop<FunnelPart>('part').color).toBe(data[0].color)
         expect(parts.at(1).prop<FunnelPart>('part').color).toBe(data[1].color)
         expect(parts.at(2).prop<FunnelPart>('part').color).toBe(data[2].color)
@@ -201,7 +212,7 @@ describe('separators', () => {
             />
         )
 
-        const parts = wrapper.find('Part')
+        const parts = findParts(wrapper)
 
         const part0 = parts.at(0)
         expect(part0.prop<FunnelPart>('part').x0).toBe(90)
