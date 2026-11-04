@@ -49,6 +49,9 @@ jobs:
         uses: cypress-io/github-action@v5
         with:
           runTests: false
+          # With a restored pnpm store, the side-effects cache skips the cypress postinstall,
+          # so the binary is never downloaded and the action's verify step fails.
+          install-command: pnpm install --frozen-lockfile --config.side-effects-cache=false
       - name: Build nivo packages
         run: make pkgs-build
       - name: Cypress run
