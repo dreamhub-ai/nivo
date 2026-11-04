@@ -13,11 +13,7 @@ export interface PartProps<D extends FunnelDatum> {
     borderGenerator: FunnelBorderGenerator
 }
 
-export const Part = <D extends FunnelDatum>({
-    part,
-    areaGenerator,
-}: // borderGenerator,
-PartProps<D>) => {
+export const Part = <D extends FunnelDatum>({ part, areaGenerator }: PartProps<D>) => {
     const { animate, config: motionConfig } = useMotionConfig()
 
     const animatedAreaPath = useAnimatedPath(areaGenerator(part.areaPoints) as string)
