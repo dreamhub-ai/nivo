@@ -55,7 +55,7 @@ export const NonMemoizedAxis = <Value extends ScaleValue>({
         let legendX = 0
         let legendY = 0
         let legendRotation = 0
-        let textAnchor
+        let textAnchor: 'start' | 'middle' | 'end' | undefined
 
         if (axis === 'y') {
             legendRotation = -90

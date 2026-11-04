@@ -21,6 +21,10 @@ const AxisTick = <Value extends ScaleValue>({
 
     const value = format?.(_value) ?? _value
 
+    // the tick props carry plain strings, as they are shared with the canvas renderer
+    const dominantBaseline = textBaseline as React.SVGAttributes<SVGTextElement>['dominantBaseline']
+    const svgTextAnchor = textAnchor as React.SVGAttributes<SVGTextElement>['textAnchor']
+
     const props = useMemo(() => {
         const style = { opacity: animatedProps.opacity }
 
@@ -39,8 +43,8 @@ const AxisTick = <Value extends ScaleValue>({
             <line x1={0} x2={lineX} y1={0} y2={lineY} style={lineStyle} />
             {textStyle.outlineWidth > 0 && (
                 <animated.text
-                    dominantBaseline={textBaseline}
-                    textAnchor={textAnchor}
+                    dominantBaseline={dominantBaseline}
+                    textAnchor={svgTextAnchor}
                     transform={animatedProps.textTransform}
                     style={textStyle}
                     strokeWidth={textStyle.outlineWidth * 2}
@@ -51,8 +55,8 @@ const AxisTick = <Value extends ScaleValue>({
                 </animated.text>
             )}
             <animated.text
-                dominantBaseline={textBaseline}
-                textAnchor={textAnchor}
+                dominantBaseline={dominantBaseline}
+                textAnchor={svgTextAnchor}
                 transform={animatedProps.textTransform}
                 style={sanitizeSvgTextStyle(textStyle)}
             >

@@ -139,7 +139,7 @@ const InnerTimeRange = ({
                 <text
                     key={legend.value}
                     transform={`translate(${legend.x},${legend.y}) rotate(${legend.rotation})`}
-                    textAnchor="left"
+                    textAnchor="start"
                     style={theme.labels.text}
                 >
                     {legend.value}
