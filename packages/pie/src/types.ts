@@ -28,7 +28,9 @@ export interface DefaultRawDatum {
     value: number
 }
 
-// @ts-ignore
+// `extends Object` keeps this from being a TypeScript "weak type" (all-optional),
+// which would reject datums without a `label` as the `RawDatum` constraint.
+// eslint-disable-next-line @typescript-eslint/ban-types
 export interface MayHaveLabel extends Object {
     label?: string | number
 }

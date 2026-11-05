@@ -480,7 +480,6 @@ export const useFunnel = <D extends FunnelDatum>({
                     const startAngle = findAngle(y0, cy, ry + stretchTopOffset)
                     const endAngle = findAngle(y1, cy, ry)
 
-
                     // Generate points along the arc
                     for (let i = 0; i < numPoints; i++) {
                         const t = startAngle + (i / numPoints) * (endAngle - startAngle)

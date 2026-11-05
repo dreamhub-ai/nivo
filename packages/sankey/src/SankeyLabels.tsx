@@ -29,7 +29,7 @@ export const SankeyLabels = <N extends DefaultNode, L extends DefaultLink>({
     const labels = nodes.map(node => {
         let x
         let y
-        let textAnchor
+        let textAnchor: 'start' | 'middle' | 'end' | undefined
         if (layout === 'horizontal') {
             y = node.y + node.height / 2
             if (node.x < width / 2) {
